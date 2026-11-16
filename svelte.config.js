@@ -4,8 +4,8 @@ import adapter from '@sveltejs/adapter-static';
 const config = {
     kit: {
         paths: {
-            // Usa a variável BASE_PATH se existir, senão usa o caminho fixo em produção
-            base: process.env.BASE_PATH || (process.env.NODE_ENV === 'production' ? '/Cupcake_Store' : '')
+            // Lê do ambiente. No GitHub Actions, definiremos BASE_PATH como '/Cupcake_Store'
+            base: process.env.BASE_PATH || ''
         },
         adapter: adapter({
             fallback: '404.html'
