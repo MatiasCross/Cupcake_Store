@@ -1,47 +1,121 @@
-# Svelte + TS + Vite
+# Petit Gâteau
 
-This template should help get you started developing with Svelte and TypeScript in Vite.
+Loja online de cupcakes feita com **Svelte + TypeScript** e **Firebase** (Authentication + Realtime Database). O cliente escolhe um cupcake pronto ou monta o seu, faz o pedido e acompanha o status. O administrador gerencia pedidos, o cardápio e os sabores.
 
-## Recommended IDE Setup
+## Funcionalidades
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+**Cliente**
+- Catálogo de cupcakes prontos, com opção de personalizar qualquer um deles.
+- "Build your own": escolha de bolo, cobertura, recheio e topping, com prévia em SVG e preço calculado na hora.
+- Carrinho persistido por usuário no Firebase (itens adicionados antes do login são mesclados ao entrar).
+- Edição de itens no carrinho: quantidade (botões − / +) e composição do cupcake.
+- Pedidos: finalizar compra, acompanhar o status e cancelar o próprio pedido (enquanto não estiver entregue ou cancelado).
 
-## Need an official Svelte framework?
+**Administrador**
+- Painel com receita, número de pedidos, cupcakes vendidos e quantidade na fila de produção.
+- Alteração do status de qualquer pedido (`pending`, `baking`, `ready`, `delivered`, `cancelled`).
+- Ativar/desativar cupcakes prontos ("On sale").
+- Ativar/desativar sabores individuais (bolo, cobertura, recheio, topping). Cupcakes prontos que usam um sabor desativado deixam de aparecer na loja.
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+## Tecnologias
 
-## Technical considerations
+- [Svelte](https://svelte.dev/) + TypeScript
+- [Firebase](https://firebase.google.com/): Authentication (e-mail/senha) e Realtime Database
 
-**Why use this over SvelteKit?**
+## Estrutura do projeto
 
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
+Organização no estilo MVC, com stores do Svelte para o estado global.
 
-This template contains as little as possible to get started with Vite + TypeScript + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
-
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
-
-**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
-
-Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
-
-**Why include `.vscode/extensions.json`?**
-
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
-
-**Why enable `allowJs` in the TS template?**
-
-While `allowJs: false` would indeed prevent the use of `.js` files in the project, it does not prevent the use of JavaScript syntax in `.svelte` files. In addition, it would force `checkJs: false`, bringing the worst of both worlds: not being able to guarantee the entire codebase is TypeScript, and also having worse typechecking for the existing JavaScript. In addition, there are valid use cases in which a mixed codebase may be relevant.
-
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/rixo/svelte-hmr#svelte-hmr).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```ts
-// store.ts
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
 ```
+src/
+├── components/        # Telas e componentes (View)
+│   ├── App.svelte         # Roteamento simples por store `view`
+│   ├── Header.svelte
+│   ├── Catalog.svelte     # Cupcakes prontos
+│   ├── Builder.svelte     # Montar o próprio cupcake
+│   ├── Cart.svelte        # Carrinho e edição de itens
+│   ├── Auth.svelte        # Login / cadastro
+│   ├── Dashboard.svelte   # "My orders" (cliente) ou painel (admin)
+│   └── CupcakeSvg.svelte  # Desenho do cupcake (só apresentação)
+├── controllers/       # Lógica de aplicação e acesso ao Firebase
+│   ├── authController.ts
+│   ├── cartController.ts
+│   ├── catalogController.ts
+│   └── orderController.ts
+├── models/            # Tipos e regras puras (sem Firebase)
+│   ├── types.ts
+│   ├── cartModel.ts
+│   ├── productModel.ts
+│   └── orderModel.ts
+├── stores/            # Stores do Svelte (user, cart, orders, view, ...)
+└── services/
+    └── firebase.ts    # Inicialização do Firebase
+```
+
+Os valores monetários são calculados em centavos nos models para evitar erros de ponto flutuante.
+
+## Como rodar
+
+> Os comandos abaixo são os padrões; confirme os nomes dos scripts no seu `package.json`.
+
+1. Instale as dependências:
+   ```bash
+   npm install
+   ```
+2. Crie um projeto no [Firebase Console](https://console.firebase.google.com/), ative **Authentication → E-mail/senha** e crie um **Realtime Database**.
+3. Coloque as credenciais do seu app web Firebase em `src/services/firebase.ts`.
+4. Carregue o cardápio inicial (sabores e cupcakes prontos) no banco:
+   ```bash
+   npm run seed
+   ```
+5. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
+
+## Modelo de dados (Realtime Database)
+
+| Caminho | Conteúdo |
+| --- | --- |
+| `users/{uid}` | `name`, `email`, `role` (`customer` ou `admin`) |
+| `options/{id}` | `type` (`base`, `frosting`, `filling`, `topping`), `name`, `color`, `shape?`, `price`, `active?` |
+| `products/{id}` | `name`, `description`, `price`, `active`, `recipe` (`base`, `frosting`, `filling`, `topping` com ids de `options`) |
+| `carts/{uid}/items` | Lista de itens do carrinho (`key`, `productId`, `name`, `detail?`, `unitPrice`, `qty`, `colors`, `recipe?`) |
+| `orders/{id}` | `uid`, `customer`, `email`, `items`, `total`, `status`, `createdAt`, `cancelledAt?` |
+
+Sabores sem o campo `active` são considerados disponíveis. Sabores nunca são apagados, apenas desativados, porque cupcakes prontos e carrinhos referenciam o id deles.
+
+## Administrador
+
+Todo cadastro novo entra como `customer`. Para promover alguém a admin, edite no console do Firebase o nó `users/{uid}/role` para `admin`. A pessoa precisa sair e entrar de novo.
+
+## Regras de segurança
+
+A interface esconde ações, mas quem de fato protege os dados são as **regras do Realtime Database**. Elas precisam, no mínimo, permitir:
+
+- cliente: ler e escrever o próprio carrinho; criar pedidos com o próprio `uid`; ler os próprios pedidos; cancelar o próprio pedido (`status` → `cancelled` e `cancelledAt`) enquanto ele não estiver entregue ou cancelado;
+- admin: ler e alterar todos os pedidos; alterar `active` em `products` e `options`;
+- `orders` com `.indexOn: ["uid"]`, usado na consulta dos pedidos do cliente.
+
+Exemplo para o cancelamento pelo cliente (adapte e teste no Rules Playground):
+
+```json
+"orders": {
+  ".indexOn": ["uid"],
+  "$orderId": {
+    ".write": "auth != null && (root.child('users/' + auth.uid + '/role').val() === 'admin' || (!data.exists() && newData.child('uid').val() === auth.uid))",
+    "status": {
+      ".write": "auth != null && data.parent().child('uid').val() === auth.uid && newData.val() === 'cancelled' && data.val() !== 'delivered' && data.val() !== 'cancelled'"
+    },
+    "cancelledAt": {
+      ".write": "auth != null && data.parent().child('uid').val() === auth.uid && newData.parent().child('status').val() === 'cancelled'"
+    }
+  }
+}
+```
+
+Se mudar a regra de cancelamento no código (`canCancel` em `orderController.ts`), mantenha as regras do banco em sincronia.
+
+## Status dos pedidos
+
+`pending` → `baking` → `ready` → `delivered`, ou `cancelled` a qualquer momento antes da entrega. Pedidos cancelados não entram na receita nem na contagem de cupcakes vendidos do painel.
