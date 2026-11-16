@@ -1,15 +1,7 @@
-import adapter from '@sveltejs/adapter-static';
+import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-    kit: {
-        paths: {
-            base: process.env.BASE_PATH || ''
-        },
-        adapter: adapter({
-            fallback: '404.html'
-        })
-    }
-};
-
-export default config;
+export default defineConfig({
+  base: process.env.NODE_ENV === 'production' ? '/Cupcake_Store/' : '/',
+  plugins: [svelte()]
+})
