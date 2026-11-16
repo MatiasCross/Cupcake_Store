@@ -1,0 +1,26 @@
+{
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "database": {
+      "port": 9000
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  },
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "petit-gateau-a75d1",
+        "supportEmail": "support@petit-gateau-a75d1.firebaseapp.com"
+      }
+    }
+  }
+}
