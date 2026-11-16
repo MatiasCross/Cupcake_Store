@@ -4,7 +4,6 @@ import adapter from '@sveltejs/adapter-static';
 const config = {
     kit: {
         paths: {
-            // Lê do ambiente. No GitHub Actions, definiremos BASE_PATH como '/Cupcake_Store'
             base: process.env.BASE_PATH || ''
         },
         adapter: adapter({
