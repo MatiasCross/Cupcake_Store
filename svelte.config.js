@@ -4,8 +4,8 @@ import adapter from '@sveltejs/adapter-static';
 const config = {
     kit: {
         paths: {
-            
-            base: process.env.NODE_ENV === 'production' ? '/Cupcake_Store' : ''
+            // Usa a variável BASE_PATH se existir, senão usa o caminho fixo em produção
+            base: process.env.BASE_PATH || (process.env.NODE_ENV === 'production' ? '/Cupcake_Store' : '')
         },
         adapter: adapter({
             fallback: '404.html'
